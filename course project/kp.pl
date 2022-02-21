@@ -46,39 +46,3 @@ search_id(Path, A, B, N) :- N > 1, move(A, C), N1 is N - 1, search_id(Res, C, B,
 
 relative(Res, A, B) :- var(Res), for(N), N < 6, search_id(Path, A, B, N), B \= A, format(Res, Path).
 relative(Res, A, B) :- nonvar(Res), format(Res, Path), length(Path, N), search_id(Path, A, B, N), B \= A.
-
-% Task 5
-
-parse(Type, Rel, A, B) --> question(Type), main(Type, Rel, A, B), [?].
-
-% Who are parents of A?
-question(who) --> [who], [are].
-
-% Who is sister of A?
-question(who) --> [who], [is].
-
-% What relationships are between A and B?
-question(relationships) --> [what], word, [are].
-
-% How many sisters does A have?
-question(how) --> [how], [many].
-
-word --> [X], {member(X, [relationships, relations])}.
-
-main(who, Rel, A, _) --> name(Rel), [of], name(A).
-main(relationships, _, A, B) --> [between], name(A), [and], name(B).
-main(how, Rel, A, _)  --> name(Rel), [does], name(A), [have].
-
-% Coping with english articles
-name(A) --> [B], [A], {member(B, [the, a])}, !.
-name(A) --> [A].
-
-correct_rel(A, B) :- (A = sisters, B = sister); (A = brothers, B = brother); (A = sons, B = son); (A = daughters, B = daughter); B = A.
-
-ans(who, Rel, A, B, Res) :- (Rel = parents, relative('father', Res, A), relative('mother', B, A)); correct_rel(Rel, Relation), relative(Relation, Res, A).
-ans(relationships, _, A, B, Res) :- relative(Res, A, B).
-ans(how, Rel, A, _, Res) :- Rel \= children, correct_rel(Rel, Relation), findall(B, relative(Relation, B, A), L), length(L, Res), !.
-ans(how, _, A, _, Res) :- findall(B, child(B, A), L), length(L, Res).
-
-ask(List, Res) :- parse(Type, Relation, A, B, List, []), ans(Type, Relation, A, B, Res).
-ask(List, Res1, Res2) :- parse(Type, Relation, A, B, List, []), ans(Type, Relation, A, B, Res1), Res2 = B.
